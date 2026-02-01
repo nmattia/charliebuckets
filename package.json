@@ -7,7 +7,7 @@
     "dev": "vite",
     "format": "prettier ./src ./index.html -w",
     "tsc": "tsc",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build --outDir ./dist/pages",
     "preview": "vite preview"
   },
   "devDependencies": {
