@@ -8,7 +8,17 @@
   </head>
   <body>
     <input type="file" id="fileInput" accept=".svg" />
+    <label>
+      <input type="radio" name="pattern" value="grid" checked />
+      Grid
+    </label>
+
+    <label>
+      <input type="radio" name="pattern" value="pio" />
+      PIO
+    </label>
     <div id="output"></div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

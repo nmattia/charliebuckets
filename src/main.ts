@@ -1,3 +1,5 @@
+import { grid, pio } from "./patterns";
+import type { PinPair } from "./patterns";
 const fileInput = document.getElementById("fileInput") as HTMLInputElement;
 const output = document.getElementById("output") as HTMLDivElement;
 
@@ -7,7 +9,9 @@ const activateInNet = (event: MouseEvent) => {
     return;
   }
   elem
-    .ownerSVGElement!.querySelectorAll(`[data-net=${elem.dataset?.net}]`)
+    .ownerSVGElement!.querySelectorAll(
+      `[data-color="${elem.dataset?.color}"][data-pin-ix="${elem.dataset?.pinIx}"]`,
+    )
     .forEach((e) => e.setAttribute("data-yes", "true"));
 };
 const deactivateInNet = (event: MouseEvent) => {
@@ -16,7 +20,9 @@ const deactivateInNet = (event: MouseEvent) => {
     return;
   }
   elem
-    .ownerSVGElement!.querySelectorAll(`[data-net=${elem.dataset.net}]`)
+    .ownerSVGElement!.querySelectorAll(
+      `[data-color="${elem.dataset?.color}"][data-pin-ix="${elem.dataset?.pinIx}"]`,
+    )
     .forEach((e) => e.removeAttribute("data-yes"));
 };
 
@@ -26,6 +32,24 @@ function hydrateSVG(svgRoot: SVGSVGElement) {
   if (!rootInverse) {
     console.warn("No root CTM");
     return null;
+  }
+
+  const radio = document.querySelector('input[name="pattern"]:checked');
+  if (!radio || !(radio instanceof HTMLInputElement)) {
+    console.warn("No radio input:", radio);
+    return;
+  }
+
+  const patternTypes = {
+    pio: pio,
+    grid: grid,
+  } as Record<string, (_: number) => Generator<PinPair>>;
+
+  const patternName = radio.value;
+  const patternGen = patternTypes[patternName];
+
+  if (!patternGen) {
+    console.warn("Unknown pattern type", patternName);
   }
 
   const byColor: Record<string, [SVGGraphicsElement]> = {};
@@ -48,7 +72,14 @@ function hydrateSVG(svgRoot: SVGSVGElement) {
       "http://www.w3.org/2000/svg",
       "g",
     );
-    colorGroup.setAttribute("data-color", color);
+    colorGroup.setAttribute("data-color", color); // not used in look up but useful
+
+    const tot = byColor[color].length;
+    // here we solve for p where n < p(p-1) where n is the number
+    // of elements and p is the number of pins.
+    // -> p2 - p - n < 0 -> zero at p = (1 + sqrt(1 + 4n))/2
+    const nPins = Math.ceil((1 + Math.sqrt(1 + 4 * tot)) / 2);
+    const patterns = patternGen(nPins);
 
     svgRoot.append(colorGroup);
     // Find all elements with cx and cy attributes
@@ -95,10 +126,18 @@ function hydrateSVG(svgRoot: SVGSVGElement) {
         `M ${-SIGN_WIDTH / 2} 0 L ${SIGN_WIDTH / 2} 0 M 0 ${-SIGN_WIDTH / 2} L 0 ${SIGN_WIDTH / 2}`,
       );
 
+      const pattern = patterns.next();
+
+      if (pattern.done) {
+        console.warn("big error");
+        return;
+      }
+
       plusPath.setAttribute("stroke", "red");
       plusPath.setAttribute("stroke-width", "1");
       plusPath.setAttribute("transform", `translate(${-SIGN_DIST}, 0)`);
-      plusPath.setAttribute("data-net", "A"); // NOTE all points share the same net which is incorrect
+      plusPath.setAttribute("data-pin-ix", pattern.value.high.toString());
+      plusPath.setAttribute("data-color", color);
       plusPath.onmouseenter = activateInNet;
       plusPath.onmouseleave = deactivateInNet;
 
@@ -115,6 +154,10 @@ function hydrateSVG(svgRoot: SVGSVGElement) {
       minusPath.setAttribute("stroke", "blue");
       minusPath.setAttribute("stroke-width", "1");
       minusPath.setAttribute("transform", `translate(${SIGN_DIST}, 0)`);
+      minusPath.setAttribute("data-pin-ix", pattern.value.low.toString());
+      minusPath.setAttribute("data-color", color);
+      minusPath.onmouseenter = activateInNet;
+      minusPath.onmouseleave = deactivateInNet;
 
       // Add paths to group
       group.appendChild(plusPath);
