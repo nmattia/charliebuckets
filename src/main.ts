@@ -1,14 +1,20 @@
 const fileInput = document.getElementById("fileInput") as HTMLInputElement;
 const output = document.getElementById("output") as HTMLDivElement;
 
-const activateInNet = () => {
-  const elem = this as unknown as SVGGraphicsElement;
+const activateInNet = (event: MouseEvent) => {
+  const elem = event.target;
+  if (!elem || !(elem instanceof SVGGraphicsElement)) {
+    return;
+  }
   elem
     .ownerSVGElement!.querySelectorAll(`[data-net=${elem.dataset?.net}]`)
     .forEach((e) => e.setAttribute("data-yes", "true"));
 };
-const deactivateInNet = () => {
-  const elem = this as unknown as SVGGraphicsElement;
+const deactivateInNet = (event: MouseEvent) => {
+  const elem = event.target;
+  if (!elem || !(elem instanceof SVGGraphicsElement)) {
+    return;
+  }
   elem
     .ownerSVGElement!.querySelectorAll(`[data-net=${elem.dataset.net}]`)
     .forEach((e) => e.removeAttribute("data-yes"));
@@ -93,11 +99,8 @@ function hydrateSVG(svgRoot: SVGSVGElement) {
       plusPath.setAttribute("stroke-width", "1");
       plusPath.setAttribute("transform", `translate(${-SIGN_DIST}, 0)`);
       plusPath.setAttribute("data-net", "A"); // NOTE all points share the same net which is incorrect
-      plusPath.setAttribute("onmouseenter", `(${activateInNet.toString()})()`);
-      plusPath.setAttribute(
-        "onmouseleave",
-        `(${deactivateInNet.toString()})()`,
-      );
+      plusPath.onmouseenter = activateInNet;
+      plusPath.onmouseleave = deactivateInNet;
 
       // Create - sign (on the right)
       const minusPath = document.createElementNS(
