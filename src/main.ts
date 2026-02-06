@@ -1,6 +1,8 @@
 import { hydrateSVG } from "./render";
+import "./style.css";
 const fileInput = document.getElementById("fileInput") as HTMLInputElement;
 const output = document.getElementById("output") as HTMLDivElement;
+const flip = document.getElementById("flip") as HTMLInputElement;
 
 function parseFile(content: string): null | SVGSVGElement {
   // Parse the SVG
@@ -47,6 +49,11 @@ fileInput.addEventListener("change", () => {
     output.appendChild(svg);
 
     hydrateSVG(svg);
+    if (flip.checked) {
+      svg.setAttribute("data-flipped", "");
+    } else {
+      svg.removeAttribute("data-flipped");
+    }
   };
 
   reader.readAsText(file);

@@ -3,3 +3,7 @@
   border: 1px solid #ccc;
   padding: 0.5rem;
 }
+
+svg[data-flipped] {
+  transform: scaleX(-1);
+}
