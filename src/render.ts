@@ -6,6 +6,8 @@ const activateInNet = (event: MouseEvent) => {
   if (!elem || !(elem instanceof SVGGraphicsElement)) {
     return;
   }
+  const pinIx = Number(elem.dataset?.pinIx);
+  console.log(String.fromCharCode(65 + pinIx), elem.dataset?.bucketId);
   elem
     .ownerSVGElement!.querySelectorAll(
       `[data-bucket-id="${elem.dataset?.bucketId}"][data-pin-ix="${elem.dataset?.pinIx}"]`,
